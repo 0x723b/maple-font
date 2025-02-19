@@ -197,7 +197,7 @@ def verify_glyph_width(font: TTFont, expect_widths: list[int], forgive: bool):
     names = font.getGlyphNames()
     for name in names:
         width, _ = font["hmtx"][name]
-        if names.__len__() > 20000:
+        if names.__len__() > 20000 and str(name).startswith("glyph"):
             print(name, width)
         if width not in expect_widths:
             result.append([name, width])
