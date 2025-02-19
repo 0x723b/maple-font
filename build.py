@@ -1179,11 +1179,10 @@ def main():
             _build_cn()
 
         build_option.is_cn_built = True
-
+        p = joinPaths(build_option.output_cn, listdir(build_option.output_cn)[0])
+        print(p)
         verify_glyph_width(
-            font=TTFont(
-                joinPaths(build_option.output_cn, listdir(build_option.output_cn)[0])
-            ),
+            font=TTFont(p),
             expect_widths=font_config.get_valid_glyph_width_list(True),
             forgive=font_config.forgive,
         )
