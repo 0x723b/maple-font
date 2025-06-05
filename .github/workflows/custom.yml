@@ -134,7 +134,7 @@ jobs:
           echo "\`\`\`" >> NOTES
           echo "### Final Configuration" >> NOTES
           echo "\`\`\`" >> NOTES
-          python build.py $BUILD_ARGS --dry >> NOTES
+          python build.py $BUILD_ARGS --dry | sed 's/^/font_config: /' >> NOTES
           echo "\`\`\`" >> NOTES
           gh release create "v$(date +%s)" fonts/archive/*.* --notes-file NOTES
         env:
