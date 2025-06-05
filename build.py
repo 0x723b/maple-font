@@ -1315,11 +1315,11 @@ def main(args: list[str] | None = None, version: str | None = None):
     build_option.load_cn_dir_and_suffix(font_config.should_build_nf_cn())
 
     if parsed_args.dry:
-        print("font_config:", json.dumps(font_config.__dict__, indent=4))
-        if not is_ci():
-            print(
-                "use font patcher:", build_option.should_use_font_patcher(font_config)
-            )
+        if is_ci():
+            font_config.nerd_font["use_font_patcher"] = build_option.should_use_font_patcher(font_config)
+            print(json.dumps(font_config.__dict__, indent=4))
+        else:
+            print("font_config:", json.dumps(font_config.__dict__, indent=4))
             print("build_option:", json.dumps(build_option.__dict__, indent=4))
             print("parsed_args:", json.dumps(parsed_args.__dict__, indent=4))
         return
