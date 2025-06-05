@@ -52,6 +52,7 @@ def check_ftcli():
 
 # =========================================================================================
 
+
 def parse_scale_factor(value) -> tuple[float, float]:
     if isinstance(value, float):
         return (value, value)
@@ -71,6 +72,7 @@ def parse_scale_factor(value) -> tuple[float, float]:
         raise argparse.ArgumentTypeError(
             "Invalid scale factor format. Use <factor> or <w_factor>,<h_factor>."
         )
+
 
 def parse_args(args: list[str] | None = None):
     parser = argparse.ArgumentParser(
@@ -565,7 +567,9 @@ class BuildOption:
             self.cn_suffix = self.cn_suffix_compact = "CN"
         self.output_cn = joinPaths(self.output_dir, self.cn_suffix_compact)
 
-    def should_use_font_patcher(self, config: FontConfig) -> bool:
+    def should_use_font_patcher(
+        self, config: FontConfig, should_exit: bool = True
+    ) -> bool:
         if not (
             len(config.nerd_font["extra_args"]) > 0
             or config.nerd_font["use_font_patcher"]
@@ -573,15 +577,19 @@ class BuildOption:
         ):
             return False
 
-        if not check_font_patcher(
-            version=config.nerd_font["version"],
-            github_mirror=self.github_mirror,
+        if (
+            not check_font_patcher(
+                version=config.nerd_font["version"],
+                github_mirror=self.github_mirror,
+            )
+            and should_exit
         ):
             exit(1)
 
-        if not path.exists(config.nerd_font["font_forge_bin"]):
+        bin_path = config.nerd_font["font_forge_bin"]
+        if (not bin_path or not path.exists(bin_path)) and should_exit:
             print(
-                f"FontForge bin ({config.nerd_font['font_forge_bin']}) not found, cannot build with Nerd Font Patcher"
+                f"FontForge bin ({bin_path}) not found, cannot build with Nerd Font Patcher"
             )
             exit(1)
 
@@ -1316,7 +1324,9 @@ def main(args: list[str] | None = None, version: str | None = None):
 
     if parsed_args.dry:
         if is_ci():
-            font_config.nerd_font["use_font_patcher"] = build_option.should_use_font_patcher(font_config)
+            font_config.nerd_font["use_font_patcher"] = (
+                build_option.should_use_font_patcher(font_config, False)
+            )
             print(json.dumps(font_config.__dict__, indent=4))
         else:
             print("font_config:", json.dumps(font_config.__dict__, indent=4))
@@ -1520,6 +1530,7 @@ def main(args: list[str] | None = None, version: str | None = None):
         del result["nerd_font"]["font_forge_bin"]
         del result["nerd_font"]["enable"]
         del result["cn"]["enable"]
+        result["nerd_font"]["font_forge_bin"] = build_option.should_use_font_patcher(font_config, False)
         config_file.write(
             json.dumps(
                 result,
