@@ -577,6 +577,13 @@ class BuildOption:
         ):
             return False
 
+        bin_path = config.nerd_font["font_forge_bin"]
+        if (not bin_path or not path.exists(bin_path)) and should_exit:
+            print(
+                f"FontForge bin ({bin_path}) not found, cannot build with Nerd Font Patcher"
+            )
+            exit(1)
+
         if (
             not check_font_patcher(
                 version=config.nerd_font["version"],
@@ -584,13 +591,6 @@ class BuildOption:
             )
             and should_exit
         ):
-            exit(1)
-
-        bin_path = config.nerd_font["font_forge_bin"]
-        if (not bin_path or not path.exists(bin_path)) and should_exit:
-            print(
-                f"FontForge bin ({bin_path}) not found, cannot build with Nerd Font Patcher"
-            )
             exit(1)
 
         return True
@@ -1323,10 +1323,10 @@ def main(args: list[str] | None = None, version: str | None = None):
     build_option.load_cn_dir_and_suffix(font_config.should_build_nf_cn())
 
     if parsed_args.dry:
+        font_config.nerd_font["use_font_patcher"] = (
+            build_option.should_use_font_patcher(config=font_config, should_exit=False)
+        )
         if is_ci():
-            font_config.nerd_font["use_font_patcher"] = (
-                build_option.should_use_font_patcher(font_config, False)
-            )
             print(json.dumps(font_config.__dict__, indent=4))
         else:
             print("font_config:", json.dumps(font_config.__dict__, indent=4))
@@ -1530,7 +1530,9 @@ def main(args: list[str] | None = None, version: str | None = None):
         del result["nerd_font"]["font_forge_bin"]
         del result["nerd_font"]["enable"]
         del result["cn"]["enable"]
-        result["nerd_font"]["font_forge_bin"] = build_option.should_use_font_patcher(font_config, False)
+        result["nerd_font"]["font_forge_bin"] = build_option.should_use_font_patcher(
+            config=font_config, should_exit=False
+        )
         config_file.write(
             json.dumps(
                 result,
