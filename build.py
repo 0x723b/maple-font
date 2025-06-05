@@ -1530,9 +1530,6 @@ def main(args: list[str] | None = None, version: str | None = None):
         del result["nerd_font"]["font_forge_bin"]
         del result["nerd_font"]["enable"]
         del result["cn"]["enable"]
-        result["nerd_font"]["font_forge_bin"] = build_option.should_use_font_patcher(
-            config=font_config, should_exit=False
-        )
         config_file.write(
             json.dumps(
                 result,
