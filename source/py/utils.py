@@ -7,23 +7,7 @@ from urllib.request import Request, urlopen
 from zipfile import ZIP_DEFLATED, ZipFile
 from fontTools.ttLib import TTFont
 from fontTools.merge import Merger
-
-
-def is_ci():
-    ci_envs = [
-        "JENKINS_HOME",
-        "TRAVIS",
-        "CIRCLECI",
-        "GITHUB_ACTIONS",
-        "GITLAB_CI",
-        "TF_BUILD",
-    ]
-
-    for env in ci_envs:
-        if environ.get(env):
-            return True
-
-    return False
+from source.py.task._utils import is_ci
 
 
 def run(command: str | list[str], extra_args: list[str] | None = None, log=not is_ci()):
@@ -79,7 +63,7 @@ def get_font_forge_bin():
     )
     LINUX_FONTFORGE_PATH = "/usr/bin/fontforge"
 
-    result = ""
+    result = None
     if is_macos():
         result = MAC_FONTFORGE_PATH
     elif is_windows():
@@ -90,6 +74,8 @@ def get_font_forge_bin():
     if not path.exists(result):
         result = shutil.which("fontforge")
 
+    if not result:
+        raise FileNotFoundError("❗ No fontforge bin found")
     return result
 
 
@@ -134,7 +120,7 @@ def download_zip_and_extract(
             download_file(url, target_path=zip_path)
         except Exception as e:
             print(
-                f"❗\nFail to download {name}. Please check your internet connection or download it manually from {url}, then put downloaded zip into project's root and run this script again. \n    Error: {e}"
+                f"❗ Fail to download {name}. Please check your internet connection or download it manually from {url}, then put downloaded zip into project's root and run this script again. \n    Error: {e}"
             )
             return False
     try:
